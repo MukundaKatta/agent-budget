@@ -1,0 +1,25 @@
+# Maintainer: Mukunda Katta <mukunda.vjcs6@gmail.com>
+pkgname=python-agent-budget
+_pyname=agent-budget
+_pymodule=agent_budget
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Production retry/budget primitive for LLM and agent calls"
+arch=('any')
+url="https://github.com/MukundaKatta/agent-budget"
+license=('Apache-2.0')
+depends=('python>=3.10')
+makedepends=('python-build' 'python-installer' 'uv')
+checkdepends=('python-pytest')
+source=("$_pyname-$pkgver.tar.gz::https://github.com/MukundaKatta/$_pyname/releases/download/v$pkgver/$_pymodule-$pkgver.tar.gz")
+sha256sums=('c6a97a5fd35d71bc06f3bef5aa5f313b279914a9f450dd04dee39042b369e78c')
+
+build() {
+  cd "$_pymodule-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$_pymodule-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+}

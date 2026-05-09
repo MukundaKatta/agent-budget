@@ -1,0 +1,30 @@
+Source: python-agent-budget
+Section: python
+Priority: optional
+Maintainer: Mukunda Katta <mukunda.vjcs6@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-uv-build,
+Standards-Version: 4.7.0
+Homepage: https://github.com/MukundaKatta/agent-budget
+Vcs-Browser: https://github.com/MukundaKatta/agent-budget
+Vcs-Git: https://github.com/MukundaKatta/agent-budget.git
+Rules-Requires-Root: no
+
+Package: python3-agent-budget
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+Description: Production retry/budget primitive for LLM and agent calls
+ The retry/budget primitive tenacity isn't, with the three things that
+ matter for production LLM-shaped work: cost cap, structured per-attempt
+ events, and adversarial-loop detection. Wraps any callable with
+ max_attempts, max_cost_usd, max_wall_clock_s, retry_on/fatal_on
+ exception sets, exponential backoff (clamped to remaining wall-clock),
+ and structured AttemptEvent lifecycle hooks. Detects retry-amplification
+ via error fingerprinting (closes Instructor #2056 class of bug). Zero
+ runtime dependencies; pure Python stdlib at runtime.

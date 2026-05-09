@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=agent-budget
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
