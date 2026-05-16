@@ -1,5 +1,11 @@
 # agent-budget
 
+[![PyPI version](https://img.shields.io/pypi/v/agent-budget.svg)](https://pypi.org/project/agent-budget/)
+[![Python versions](https://img.shields.io/pypi/pyversions/agent-budget.svg)](https://pypi.org/project/agent-budget/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/MukundaKatta/agent-budget/actions/workflows/test.yml/badge.svg)](https://github.com/MukundaKatta/agent-budget/actions/workflows/test.yml)
+[![Zero runtime deps](https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg)](pyproject.toml)
+
 Production retry/budget primitive for LLM and agent calls. The thing `tenacity` isn't.
 
 ```bash
