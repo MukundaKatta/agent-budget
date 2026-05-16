@@ -12,15 +12,79 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+    # Pin every `uv run` invocation to the matrix Python version. Without
+    # this, `uv run` reads requires-python from pyproject.toml and falls
+    # back to the floor (3.10), making the matrix axis a no-op AND breaking
+    # the zero-deps check below on 3.10 where `tomllib` isn't in stdlib.
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
+
       - name: Install deps
-        run: uv sync --group dev --python ${{ matrix.python-version }}
-      - name: Run tests
-        run: uv run pytest --cov=agent_budget --cov-report=term-missing
+        run: uv sync --group dev
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest \
+            --cov=agent_budget \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=95
+
+      - name: Verify zero runtime dependencies
+        # agent-budget promises pure stdlib at runtime; this fails fast
+        # if pyproject.toml gains a runtime dep accidentally.
+        # Plain-text parse (no tomllib) so this check works uniformly
+        # across Python 3.10-3.13.
+        run: |
+          python3 -c "
+          import re, sys
+          src = open('pyproject.toml').read()
+          # Match the [project] table's 'dependencies = [...]' array.
+          m = re.search(r'^dependencies\s*=\s*\[(.*?)\]', src, re.S | re.M)
+          if not m:
+              print('confirmed: no project.dependencies key present')
+              sys.exit(0)
+          body = m.group(1).strip().strip(',').strip()
+          if body:
+              print('agent-budget must have zero runtime deps; found:')
+              print(body)
+              sys.exit(1)
+          print('confirmed: zero runtime deps')
+          "
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+        continue-on-error: true
+
+  build:
+    name: build sanity check
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Build sdist + wheel
+        run: uv build
+      - name: Install built wheel into a clean env and import
+        run: |
+          # `uv venv` does not seed pip by default; use `uv pip install`
+          # against the venv path instead.
+          uv venv /tmp/install-test
+          uv pip install --python /tmp/install-test/bin/python dist/*.whl
+          /tmp/install-test/bin/python -c "from agent_budget import budget, BudgetExceeded, AdversarialLoopDetected, AttemptEvent, classify_exception, fingerprint_exception, __version__; print('import ok, v', __version__)"
