@@ -83,6 +83,8 @@ jobs:
         run: uv build
       - name: Install built wheel into a clean env and import
         run: |
+          # `uv venv` does not seed pip by default; use `uv pip install`
+          # against the venv path instead.
           uv venv /tmp/install-test
-          /tmp/install-test/bin/pip install dist/*.whl
+          uv pip install --python /tmp/install-test/bin/python dist/*.whl
           /tmp/install-test/bin/python -c "from agent_budget import budget, BudgetExceeded, AdversarialLoopDetected, AttemptEvent, classify_exception, fingerprint_exception, __version__; print('import ok, v', __version__)"
