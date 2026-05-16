@@ -12,6 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
+    # Pin every `uv run` invocation to the matrix Python version. Without
+    # this, `uv run` reads requires-python from pyproject.toml and falls
+    # back to the floor (3.10), making the matrix axis a no-op AND breaking
+    # the zero-deps check below on 3.10 where `tomllib` isn't in stdlib.
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +30,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install deps
-        run: uv sync --group dev --python ${{ matrix.python-version }}
+        run: uv sync --group dev
 
       - name: Run tests with coverage
         run: |
@@ -37,15 +43,22 @@ jobs:
       - name: Verify zero runtime dependencies
         # agent-budget promises pure stdlib at runtime; this fails fast
         # if pyproject.toml gains a runtime dep accidentally.
+        # Plain-text parse (no tomllib) so this check works uniformly
+        # across Python 3.10-3.13.
         run: |
-          uv run python -c "
-          import tomllib
-          with open('pyproject.toml','rb') as f:
-              data = tomllib.load(f)
-          deps = data.get('project',{}).get('dependencies',[])
-          if deps:
-              print(f'agent-budget must have zero runtime deps; found: {deps}')
-              raise SystemExit(1)
+          python3 -c "
+          import re, sys
+          src = open('pyproject.toml').read()
+          # Match the [project] table's 'dependencies = [...]' array.
+          m = re.search(r'^dependencies\s*=\s*\[(.*?)\]', src, re.S | re.M)
+          if not m:
+              print('confirmed: no project.dependencies key present')
+              sys.exit(0)
+          body = m.group(1).strip().strip(',').strip()
+          if body:
+              print('agent-budget must have zero runtime deps; found:')
+              print(body)
+              sys.exit(1)
           print('confirmed: zero runtime deps')
           "
 
