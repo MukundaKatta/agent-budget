@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Python dev dependencies only — agent-budget has zero runtime deps (pure stdlib)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    groups:
+      python-dev-deps:
+        applies-to: version-updates
+        dependency-type: "development"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "ci"
+      - "dependencies"
