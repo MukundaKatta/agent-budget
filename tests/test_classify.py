@@ -1,8 +1,19 @@
-"""Exception classification tests."""
+"""Exception classification tests (pytest).
+
+A standard-library ``unittest`` mirror lives in ``test_unittest_suite.py``.
+When ``pytest`` is unavailable this module skips itself during ``unittest``
+discovery rather than raising an import error.
+"""
 
 from __future__ import annotations
 
-from agent_budget import classify_exception, fingerprint_exception
+import importlib.util
+import unittest
+
+if importlib.util.find_spec("pytest") is None:  # pragma: no cover - env-dependent
+    raise unittest.SkipTest("pytest not installed; see test_unittest_suite.py")
+
+from agent_budget import classify_exception, fingerprint_exception  # noqa: E402
 
 
 class _Retryable(Exception):

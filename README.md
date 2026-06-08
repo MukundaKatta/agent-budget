@@ -125,6 +125,27 @@ def call(...):
 - v0.3: `streaming.budget` context manager for token-cap on `for chunk in stream` loops with cooperative cancel.
 - v0.4: composable budget chains (parent budget that bounds nested calls).
 
+## Development
+
+Run the full test suite (with coverage) the way CI does, using
+[`uv`](https://docs.astral.sh/uv/):
+
+```sh
+uv sync --group dev
+uv run pytest
+```
+
+The package itself has **zero runtime dependencies**, and the core behavior is
+also covered by a standard-library-only suite that needs no third-party tools:
+
+```sh
+python3 -m unittest discover -s tests
+```
+
+This stdlib suite (`tests/test_unittest_suite.py`) imports and exercises the
+real public API and bootstraps the `src/` layout onto `sys.path`, so it runs
+straight from a checkout without installing anything.
+
 ## License
 
 Apache-2.0. See [LICENSE](./LICENSE).
