@@ -1,12 +1,24 @@
-"""@budget decorator tests."""
+"""@budget decorator tests (pytest).
+
+These tests target the ``pytest`` runner used in CI. A standard-library
+``unittest`` mirror of this coverage lives in ``test_unittest_suite.py`` so the
+package can also be validated with ``python3 -m unittest`` in environments
+without third-party test dependencies. When ``pytest`` is absent (e.g. during
+plain ``unittest`` discovery) this module skips itself instead of erroring.
+"""
 
 from __future__ import annotations
 
+import importlib.util
 import time
+import unittest
 
-import pytest
+if importlib.util.find_spec("pytest") is None:  # pragma: no cover - env-dependent
+    raise unittest.SkipTest("pytest not installed; see test_unittest_suite.py")
 
-from agent_budget import (
+import pytest  # noqa: E402
+
+from agent_budget import (  # noqa: E402
     AdversarialLoopDetected,
     AttemptEvent,
     BudgetExceeded,
